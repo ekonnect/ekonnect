@@ -447,36 +447,7 @@
 
 <div class="main">
 
-  <!-- ★ 설정 가이드 (SHEET_ID 입력 후 삭제) -->
-  <div class="setup-guide" id="setup-guide">
-    <h3>⚙️ 최초 1회 설정 필요</h3>
-    <div class="setup-step">
-      <div class="step-num">1</div>
-      <p><strong>구글 시트 만들기</strong><br>아래 양식대로 구글 시트를 만드세요. 첫번째 행(헤더)은 그대로 입력하세요.
-      <div class="code-block">A: 보관가능일 &nbsp; B: 도착일 &nbsp; C: 출고일 &nbsp; D: 손님번호 &nbsp; E: 택배회사 &nbsp; F: 운송장번호 &nbsp; G: 무게 &nbsp; H: 메모</div></p>
-    </div>
-    <div class="setup-step">
-      <div class="step-num">2</div>
-      <p><strong>시트 공개 설정</strong><br>구글 시트 → 파일 → 공유 → 링크가 있는 모든 사용자 → <strong>뷰어</strong>로 변경</p>
-    </div>
-    <div class="setup-step">
-      <div class="step-num">3</div>
-      <p><strong>SHEET_ID 복사</strong><br>주소창에서 아래 부분을 복사하세요:<br>
-      <div class="code-block">https://docs.google.com/spreadsheets/d/<strong>[여기가 SHEET_ID]</strong>/edit</div>
-      </p>
-    </div>
-    <div class="setup-step">
-      <div class="step-num">4</div>
-      <p><strong>이 파일의 SHEET_ID 교체</strong><br>
-      아래 코드에서 <code style="color:var(--warning)">1538IIGx0Fx6dbrEzolXA26HiWH1e6gXcHTjZmCSAEbM</code>를 복사한 ID로 바꾸세요.</p>
-    </div>
-    <div class="setup-step">
-      <div class="step-num">5</div>
-      <p><strong>손님 비밀번호 설정</strong><br>
-      코드에서 <code style="color:var(--warning)">CUSTOMER_PASSWORDS</code> 객체에 손님번호와 비밀번호를 추가하세요.</p>
-    </div>
-    <p style="font-size:12px;color:var(--text3);margin-top:8px">설정 완료 후 이 안내박스 전체를 삭제하거나 주석 처리하세요.</p>
-  </div>
+
 
   <!-- 로그인 화면 -->
   <div class="login-card" id="login-section">
@@ -551,14 +522,14 @@
 // ★ 설정 영역 — 이 부분만 수정하세요
 // ════════════════════════════════════════════
 
-const SHEET_ID = '1538IIGx0Fx6dbrEzolXA26HiWH1e6gXcHTjZmCSAEbM';       // ← 구글 시트 ID
+const SHEET_ID = 'YOUR_SHEET_ID_HERE';       // ← 구글 시트 ID
 const SHEET_NAME = '시트1';                   // ← 시트 이름 (기본값: 시트1)
 
 // 손님번호: 비밀번호 (관리자가 직접 지정)
 const CUSTOMER_PASSWORDS = {
-  'EK41': 'EK41A',
-  'EK123': 'EK123A',
-  'EK3': 'EK3A',
+  'C001': '1234',
+  'C002': '5678',
+  'C003': '9999',
   // 'C004': '비밀번호', ← 이런 형식으로 추가
 };
 
