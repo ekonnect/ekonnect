@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>창고 택배 조회</title>
+
+<!-- PWA 설정 -->
+<meta name="theme-color" content="#0f1923">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f1923;
+    --bg2: #1a2535;
+    --bg3: #1e2d40;
+    --accent: #4fc3f7;
+    --accent2: #81d4fa;
+    --success: #66bb6a;
+    --warning: #ffa726;
+    --danger: #ef5350;
+    --text: #e8f4fd;
+    --text2: #90a4ae;
+    --text3: #546e7a;
+    --border: rgba(79,195,247,0.15);
+    --border2: rgba(79,195,247,0.08);
+    --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    background: linear-gradient(135deg, #0f1923 0%, #1a2535 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-dot {
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+    flex-shrink: 0;
+  }
+  .header h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+  .header h1 span { color: var(--accent); }
+
+  /* ─── Main wrap ─── */
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+
+  /* ─── Login card ─── */
+  .login-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    box-shadow: var(--card-shadow);
+  }
+  .login-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.4px;
+  }
+  .login-card .sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 28px;
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .input-row label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .input-row input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-row input::placeholder { color: var(--text3); font-size: 13px; }
+  .input-row input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79,195,247,0.1);
+  }
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #0f1923;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(79,195,247,0.25);
+  }
+  .btn-primary:hover { opacity: 0.9; box-shadow: 0 6px 20px rgba(79,195,247,0.35); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .error-msg {
+    background: rgba(239,83,80,0.1);
+    border: 1px solid rgba(239,83,80,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #ef9a9a;
+    margin-top: 14px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* ─── Dashboard ─── */
+  .dashboard { display: none; }
+  .dashboard.show { display: block; }
+
+  .welcome-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .welcome-bar h2 { font-size: 18px; font-weight: 700; }
+  .welcome-bar h2 span { color: var(--accent); }
+  .btn-logout {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-card .num {
+    font-family: 'DM Mono', monospace;
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-card .label { font-size: 11px; color: var(--text2); }
+  .stat-card.active .num { color: var(--accent); }
+  .stat-card.ready .num { color: var(--warning); }
+  .stat-card.done .num { color: var(--success); }
+
+  /* Filter tabs */
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0f1923;
+  }
+
+  /* Package cards */
+  .package-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .pkg-card {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 18px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+  .pkg-card:hover {
+    border-color: var(--border);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .pkg-card.overdue { border-left: 3px solid var(--danger); }
+  .pkg-card.expiring { border-left: 3px solid var(--warning); }
+  .pkg-card.shipped { border-left: 3px solid var(--success); opacity: 0.6; }
+
+  .pkg-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 10px;
+  }
+  .pkg-waybill {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent2);
+    letter-spacing: 0.5px;
+  }
+  .pkg-company {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .status-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-stored { background: rgba(79,195,247,0.15); color: var(--accent); }
+  .badge-expiring { background: rgba(255,167,38,0.15); color: var(--warning); }
+  .badge-overdue { background: rgba(239,83,80,0.15); color: var(--danger); }
+  .badge-shipped { background: rgba(102,187,106,0.15); color: var(--success); }
+  .badge-pending { background: rgba(206,147,216,0.15); color: #ce93d8; }
+
+  .pkg-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  @media (min-width: 480px) {
+    .pkg-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .pkg-field { }
+  .pkg-field .f-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 2px;
+  }
+  .pkg-field .f-value {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .pkg-field .f-value.mono { font-family: 'DM Mono', monospace; }
+
+  .pkg-memo {
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 12px;
+    display: none;
+  }
+  .pkg-memo.show { display: block; }
+  .pkg-memo-icon { color: var(--text3); font-size: 11px; margin-right: 4px; }
+
+  .days-bar {
+    background: var(--bg3);
+    border-radius: 4px;
+    height: 4px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .days-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  .pkg-footer {
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .days-left { }
+  .days-left.urgent { color: var(--danger); font-weight: 600; }
+  .days-left.warn { color: var(--warning); font-weight: 500; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text3);
+  }
+  .empty-state .icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state p { font-size: 14px; }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text2);
+    font-size: 14px;
+  }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Notice box */
+  .notice {
+    background: rgba(79,195,247,0.06);
+    border: 1px dashed rgba(79,195,247,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-top: 24px;
+  }
+  .notice strong { color: var(--accent); }
+
+  /* Setup guide */
+  .setup-guide {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .setup-guide h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--accent); }
+  .setup-step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 24px; height: 24px;
+    background: var(--accent);
+    color: #0f1923;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .setup-step p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .setup-step p strong { color: var(--text); }
+  .code-block {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    margin-top: 6px;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo-dot"></div>
+    <h1>창고 <span>택배</span> 조회</h1>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ★ 설정 가이드 (SHEET_ID 입력 후 삭제) -->
+  <div class="setup-guide" id="setup-guide">
+    <h3>⚙️ 최초 1회 설정 필요</h3>
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <p><strong>구글 시트 만들기</strong><br>아래 양식대로 구글 시트를 만드세요. 첫번째 행(헤더)은 그대로 입력하세요.
+      <div class="code-block">A: 보관가능일 &nbsp; B: 도착일 &nbsp; C: 출고일 &nbsp; D: 손님번호 &nbsp; E: 택배회사 &nbsp; F: 운송장번호 &nbsp; G: 무게 &nbsp; H: 메모</div></p>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <p><strong>시트 공개 설정</strong><br>구글 시트 → 파일 → 공유 → 링크가 있는 모든 사용자 → <strong>뷰어</strong>로 변경</p>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">3</div>
+      <p><strong>SHEET_ID 복사</strong><br>주소창에서 아래 부분을 복사하세요:<br>
+      <div class="code-block">https://docs.google.com/spreadsheets/d/<strong>[여기가 SHEET_ID]</strong>/edit</div>
+      </p>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">4</div>
+      <p><strong>이 파일의 SHEET_ID 교체</strong><br>
+      아래 코드에서 <code style="color:var(--warning)">YOUR_SHEET_ID_HERE</code>를 복사한 ID로 바꾸세요.</p>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">5</div>
+      <p><strong>손님 비밀번호 설정</strong><br>
+      코드에서 <code style="color:var(--warning)">CUSTOMER_PASSWORDS</code> 객체에 손님번호와 비밀번호를 추가하세요.</p>
+    </div>
+    <p style="font-size:12px;color:var(--text3);margin-top:8px">설정 완료 후 이 안내박스 전체를 삭제하거나 주석 처리하세요.</p>
+  </div>
+
+  <!-- 로그인 화면 -->
+  <div class="login-card" id="login-section">
+    <h2>내 택배 확인하기</h2>
+    <p class="sub">손님번호와 비밀번호를 입력하세요</p>
+    <div class="input-group">
+      <div class="input-row">
+        <label>손님 번호</label>
+        <input type="text" id="customer-id" placeholder="예: C001" autocomplete="off" autocapitalize="off">
+      </div>
+      <div class="input-row">
+        <label>비밀번호</label>
+        <input type="password" id="password" placeholder="관리자에게 받은 비밀번호">
+      </div>
+    </div>
+    <button class="btn-primary" id="login-btn" onclick="handleLogin()">조회하기</button>
+    <div class="error-msg" id="error-msg">손님번호 또는 비밀번호가 올바르지 않습니다.</div>
+
+    <div class="notice">
+      <strong>안내</strong><br>
+      비밀번호는 관리자에게 받은 비밀번호를 그대로 입력하세요.<br>
+      비밀번호 변경은 관리자에게 문의하세요.
+    </div>
+  </div>
+
+  <!-- 대시보드 -->
+  <div class="dashboard" id="dashboard">
+
+    <div class="welcome-bar">
+      <h2>손님번호 <span id="display-id"></span></h2>
+      <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
+    </div>
+
+    <!-- 통계 -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card active">
+        <div class="num" id="stat-total">—</div>
+        <div class="label">전체 택배</div>
+      </div>
+      <div class="stat-card ready">
+        <div class="num" id="stat-expiring">—</div>
+        <div class="label">기한 임박</div>
+      </div>
+      <div class="stat-card done">
+        <div class="num" id="stat-shipped">—</div>
+        <div class="label">출고 완료</div>
+      </div>
+    </div>
+
+    <!-- 필터 -->
+    <div class="filter-tabs">
+      <button class="tab-btn active" onclick="filterPackages('all', this)">전체</button>
+      <button class="tab-btn" onclick="filterPackages('stored', this)">보관 중</button>
+      <button class="tab-btn" onclick="filterPackages('expiring', this)">기한 임박</button>
+      <button class="tab-btn" onclick="filterPackages('shipped', this)">출고 완료</button>
+    </div>
+
+    <!-- 로딩 -->
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      데이터를 불러오는 중...
+    </div>
+
+    <!-- 패키지 목록 -->
+    <div class="package-list" id="package-list"></div>
+
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// ★ 설정 영역 — 이 부분만 수정하세요
+// ════════════════════════════════════════════
+
+const SHEET_ID = 'YOUR_SHEET_ID_HERE';       // ← 구글 시트 ID
+const SHEET_NAME = '시트1';                   // ← 시트 이름 (기본값: 시트1)
+
+// 손님번호: 비밀번호 (관리자가 직접 지정)
+const CUSTOMER_PASSWORDS = {
+  'C001': '1234',
+  'C002': '5678',
+  'C003': '9999',
+  // 'C004': '비밀번호', ← 이런 형식으로 추가
+};
+
+// 구글 시트 헤더 순서 (시트 열 순서와 일치해야 함)
+// A        B      C     D      E      F        G    H
+// 보관가능일 도착일 출고일 손님번호 택배회사 운송장번호 무게 메모
+const COL = {
+  EXPIRE_DATE:  0,  // A열
+  ARRIVE_DATE:  1,  // B열
+  SHIP_DATE:    2,  // C열
+  CUSTOMER_ID:  3,  // D열
+  COMPANY:      4,  // E열
+  WAYBILL:      5,  // F열
+  WEIGHT:       6,  // G열
+  MEMO:         7,  // H열
+};
+
+// ════════════════════════════════════════════
+
+let allPackages = [];
+let currentFilter = 'all';
+
+// ─── 로그인 ───
+function handleLogin() {
+  const id = document.getElementById('customer-id').value.trim().toUpperCase();
+  const pw = document.getElementById('password').value.trim();
+  const errEl = document.getElementById('error-msg');
+
+  if (!id || !pw) {
+    errEl.textContent = '손님번호와 비밀번호를 모두 입력하세요.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  if (CUSTOMER_PASSWORDS[id] === undefined || CUSTOMER_PASSWORDS[id] !== pw) {
+    errEl.classList.add('show');
+    return;
+  }
+
+  errEl.classList.remove('show');
+  showDashboard(id);
+}
+
+// Enter키 지원
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const loginSection = document.getElementById('login-section');
+    if (loginSection.style.display !== 'none') handleLogin();
+  }
+});
+
+// ─── 대시보드 진입 ───
+function showDashboard(customerId) {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('display-id').textContent = customerId;
+  document.getElementById('dashboard').classList.add('show');
+  loadPackages(customerId);
+}
+
+function handleLogout() {
+  document.getElementById('login-section').style.display = 'block';
+  document.getElementById('dashboard').classList.remove('show');
+  document.getElementById('customer-id').value = '';
+  document.getElementById('password').value = '';
+  allPackages = [];
+}
+
+// ─── 데이터 로딩 ───
+async function loadPackages(customerId) {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('package-list').innerHTML = '';
+
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47, text.length - 2));
+    const rows = json.table.rows;
+
+    allPackages = [];
+    for (const row of rows) {
+      if (!row.c || !row.c[COL.CUSTOMER_ID] || !row.c[COL.CUSTOMER_ID].v) continue;
+      const rowId = String(row.c[COL.CUSTOMER_ID].v).trim().toUpperCase();
+      if (rowId !== customerId) continue;
+
+      allPackages.push({
+        customerId:  getCellValue(row.c[COL.CUSTOMER_ID]),
+        waybill:     getCellValue(row.c[COL.WAYBILL]),
+        company:     getCellValue(row.c[COL.COMPANY]),
+        arriveDate:  getCellValue(row.c[COL.ARRIVE_DATE]),
+        expireDate:  getCellValue(row.c[COL.EXPIRE_DATE]),
+        shipDate:    getCellValue(row.c[COL.SHIP_DATE]),
+        weight:      getCellValue(row.c[COL.WEIGHT]),
+        memo:        getCellValue(row.c[COL.MEMO]),
+      });
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    updateStats();
+    renderPackages(allPackages);
+
+  } catch (e) {
+    document.getElementById('loading').innerHTML =
+      '<p style="color:var(--danger);font-size:13px">⚠️ 데이터를 불러오지 못했습니다.<br>SHEET_ID 설정을 확인하거나 시트 공개 설정을 확인하세요.</p>';
+  }
+}
+
+function getCellValue(cell) {
+  if (!cell || cell.v === null || cell.v === undefined) return '';
+  return String(cell.f || cell.v).trim();
+}
+
+// ─── 통계 업데이트 ───
+function updateStats() {
+  const total = allPackages.length;
+  const shipped = allPackages.filter(p => p.shipDate).length;
+  const expiring = allPackages.filter(p => {
+    const days = getDaysLeft(p.expireDate);
+    return days !== null && days <= 3 && days >= 0 && !p.shipDate;
+  }).length;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-shipped').textContent = shipped;
+  document.getElementById('stat-expiring').textContent = expiring;
+}
+
+// ─── 필터 ───
+function filterPackages(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  let filtered = allPackages;
+  if (filter === 'stored') filtered = allPackages.filter(p => !p.shipDate);
+  else if (filter === 'shipped') filtered = allPackages.filter(p => p.shipDate);
+  else if (filter === 'expiring') filtered = allPackages.filter(p => {
+    const d = getDaysLeft(p.expireDate);
+    return d !== null && d <= 3 && d >= 0 && !p.shipDate;
+  });
+  renderPackages(filtered);
+}
+
+// ─── 렌더링 ───
+function renderPackages(packages) {
+  const listEl = document.getElementById('package-list');
+
+  if (packages.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📦</div>
+        <p>해당하는 택배가 없습니다.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = packages.map((p, i) => {
+    const daysLeft = getDaysLeft(p.expireDate);
+    const isShipped = !!p.shipDate;
+    const isOverdue = daysLeft !== null && daysLeft < 0 && !isShipped;
+    const isExpiring = daysLeft !== null && daysLeft <= 3 && daysLeft >= 0 && !isShipped;
+
+    let cardClass = '';
+    let badge = '';
+    let daysText = '';
+    let barWidth = 100;
+    let barColor = '#4fc3f7';
+
+    if (isShipped) {
+      cardClass = 'shipped';
+      badge = '<span class="status-badge badge-shipped">출고 완료</span>';
+      daysText = `출고일: ${p.shipDate}`;
+    } else if (isOverdue) {
+      cardClass = 'overdue';
+      badge = '<span class="status-badge badge-overdue">기한 초과</span>';
+      daysText = `${Math.abs(daysLeft)}일 초과`;
+      barWidth = 100; barColor = '#ef5350';
+    } else if (isExpiring) {
+      cardClass = 'expiring';
+      badge = '<span class="status-badge badge-expiring">기한 임박</span>';
+      daysText = `${daysLeft}일 남음`;
+      barWidth = Math.max(5, daysLeft * 33);
+      barColor = '#ffa726';
+    } else {
+      badge = '<span class="status-badge badge-stored">보관 중</span>';
+      if (daysLeft !== null) {
+        daysText = `${daysLeft}일 남음`;
+        barWidth = Math.min(100, Math.max(5, daysLeft * 10));
+      }
+    }
+
+    const memoHtml = p.memo
+      ? `<div class="pkg-memo show"><span class="pkg-memo-icon">📝</span>${escapeHtml(p.memo)}</div>`
+      : '';
+
+    return `
+    <div class="pkg-card ${cardClass}">
+      <div class="pkg-top">
+        <div>
+          <div class="pkg-waybill">${escapeHtml(p.waybill || '—')}</div>
+          <div class="pkg-company">${escapeHtml(p.company || '—')}</div>
+        </div>
+        ${badge}
+      </div>
+      <div class="pkg-grid">
+        <div class="pkg-field">
+          <div class="f-label">도착일</div>
+          <div class="f-value">${escapeHtml(p.arriveDate || '—')}</div>
+        </div>
+        <div class="pkg-field">
+          <div class="f-label">보관 기한</div>
+          <div class="f-value">${escapeHtml(p.expireDate || '—')}</div>
+        </div>
+        <div class="pkg-field">
+          <div class="f-label">무게</div>
+          <div class="f-value mono">${p.weight ? escapeHtml(p.weight) + ' kg' : '—'}</div>
+        </div>
+      </div>
+      ${memoHtml}
+      ${daysLeft !== null && !isShipped ? `
+      <div class="days-bar">
+        <div class="days-fill" style="width:${barWidth}%;background:${barColor}"></div>
+      </div>` : ''}
+      <div class="pkg-footer">
+        <span class="days-left ${isOverdue ? 'urgent' : isExpiring ? 'warn' : ''}">${daysText}</span>
+        <span style="color:var(--text3);font-size:10px">#${String(i+1).padStart(2,'0')}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── 유틸 ───
+function getDaysLeft(dateStr) {
+  if (!dateStr) return null;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  // 날짜 형식 자동 파싱 (YYYY-MM-DD, YYYY/MM/DD, MM/DD/YYYY 등)
+  const d = new Date(dateStr.replace(/\//g, '-'));
+  if (isNaN(d)) return null;
+  d.setHours(0,0,0,0);
+  return Math.floor((d - today) / 86400000);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
